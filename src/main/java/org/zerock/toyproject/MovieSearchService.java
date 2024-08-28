@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -16,6 +18,12 @@ public class MovieSearchService {
 
     @Value("${spring.kmdb.api.key}")
     private String serviceKey;
+
+    private final RedisTemplate<String, String> redisTemplate;
+
+    public MovieSearchService(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
 
     public List<Movie> moviesSearch(String keyword) {
@@ -117,5 +125,22 @@ public class MovieSearchService {
             throw new RuntimeException(e);
         }
         return movieDetails;
+    }
+
+    //Redis에 캐싱된 값들을 가져오는 과정
+    public List<Object> redisCachingDataServe() {
+        Set<String> keys = redisTemplate.keys("*");
+        List<Object> values = new ArrayList<>();
+
+        int count = 0;
+        if (keys != null) {
+            for (String key : keys) {
+                if (count >= 5) break; // 5개의 value만 가져오기
+                values.add(redisTemplate.opsForValue().get(key));
+                count++;
+            }
+        }
+
+        return values;
     }
 }

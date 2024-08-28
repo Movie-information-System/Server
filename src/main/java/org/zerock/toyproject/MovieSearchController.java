@@ -10,15 +10,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("api/v1")
 public class MovieSearchController {
 
-    private MovieSearchService movieSearchService;
+    //처음 주입으로 초기화 이후 불변성을 보장하기 위해 final 을 쓴다.
+    private final MovieSearchService movieSearchService;
 
     public MovieSearchController(MovieSearchService movieSearchService) {
         this.movieSearchService = movieSearchService;
     }
 
-    @GetMapping("main")
-    public List<Movie> mainCachedMovies(){
-        return null;
+    @GetMapping("caching")
+    public List<Object> mainCachingData(){
+        return movieSearchService.redisCachingDataServe();
     }
 
     @GetMapping("search")
